@@ -2,11 +2,15 @@ from groq import Groq
 from agents.base_agent import BaseAgent
 from config import GROQ_API_KEY
 
-client = Groq(api_key=GROQ_API_KEY)
 
 class CodeAgent(BaseAgent):
     def __init__(self):
         super().__init__("Code Agent")
+
+        if not GROQ_API_KEY:
+            raise ValueError("GROQ_API_KEY is not set")
+
+        self.client = Groq(api_key=GROQ_API_KEY)
 
     def handle(self, query: str):
 
@@ -24,7 +28,7 @@ class CodeAgent(BaseAgent):
         Question: {query}
         """
 
-        response = client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}]
         )
