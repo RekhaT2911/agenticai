@@ -8,11 +8,16 @@ class CodeAgent(BaseAgent):
     def __init__(self):
         super().__init__("Code Agent")
 
-        # Read directly from Streamlit secrets or environment
-        api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+        # Read API key directly from Streamlit secrets or environment
+        api_key = None
+
+        if "GROQ_API_KEY" in st.secrets:
+            api_key = st.secrets["GROQ_API_KEY"]
+        else:
+            api_key = os.getenv("GROQ_API_KEY")
 
         if not api_key:
-            raise ValueError("GROQ_API_KEY is not set")
+            raise ValueError("GROQ_API_KEY is not set in Streamlit Secrets")
 
         self.client = Groq(api_key=api_key)
 
