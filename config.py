@@ -1,11 +1,12 @@
 import os
 import streamlit as st
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def get_secret(key):
-    return os.getenv(key) or st.secrets.get(key)
+    # First check Streamlit secrets
+    if key in st.secrets:
+        return st.secrets[key]
+    # Then check environment variables (local .env)
+    return os.getenv(key)
 
 OPENWEATHER_API_KEY = get_secret("OPENWEATHER_API_KEY")
 RAPID_API_KEY = get_secret("RAPID_API_KEY")
