@@ -13,6 +13,7 @@ class BookingAgent(BaseAgent):
             "X-RapidAPI-Key": RAPID_API_KEY,
             "X-RapidAPI-Host": self.api_host
         }
+
         # Common city name to station code mapping
         self.city_to_code = {
             "bangalore": "SBC", "bengaluru": "SBC",
@@ -58,21 +59,33 @@ class BookingAgent(BaseAgent):
     def search_trains(self, from_code, to_code, date):
         """Call IRCTC RapidAPI to get trains between stations."""
         url = f"https://{self.api_host}/api/v3/trainBetweenStations"
+
         params = {
             "fromStationCode": from_code,
             "toStationCode": to_code,
             "dateOfJourney": date
         }
+
         try:
-            response = requests.get(url, headers=self.headers, params=params, timeout=10)
+            response = requests.get(
+                url,
+                headers=self.headers,
+                params=params,
+                timeout=10
+            )
+
             data = response.json()
+
             if data.get("status") and data.get("data"):
                 return data["data"]
+
             return None
+
         except Exception:
             return None
 
     def handle(self, query: str):
+
         query_lower = query.lower()
         source, destination = self.extract_cities(query_lower)
 
@@ -88,10 +101,10 @@ class BookingAgent(BaseAgent):
 
         if not from_code:
             return f"❌ Could not find station code for '{source}'. Try using a major city name."
+
         if not to_code:
             return f"❌ Could not find station code for '{destination}'. Try using a major city name."
 
-        # Determine date
         if "tomorrow" in query_lower:
             travel_date = datetime.now() + timedelta(days=1)
             day_label = "Tomorrow"
@@ -100,6 +113,7 @@ class BookingAgent(BaseAgent):
             day_label = "Today"
 
         date_str = travel_date.strftime("%Y-%m-%d")
+
         trains = self.search_trains(from_code, to_code, date_str)
 
         if not trains:
@@ -109,7 +123,6 @@ class BookingAgent(BaseAgent):
                 f"Try a different date or check station names."
             )
 
-        # Limit to top 5 trains
         trains = trains[:5]
 
         response = (
@@ -120,12 +133,14 @@ class BookingAgent(BaseAgent):
         )
 
         for i, train in enumerate(trains, 1):
+
             train_name = train.get("train_name", "N/A")
             train_number = train.get("train_number", "N/A")
             departure = train.get("from_std", "N/A")
             arrival = train.get("to_std", "N/A")
             duration = train.get("duration", "N/A")
             class_types = train.get("class_type", [])
+
             classes_str = ", ".join(class_types) if class_types else "N/A"
 
             response += (
